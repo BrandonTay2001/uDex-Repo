@@ -10,6 +10,7 @@ const alpaca = new Alpaca({
 });
 
 // DONE, CHECKED
+// adds the ticker to the watchlist
 router.put('/addtowatchlist/:ticker', (req, res, next) => {
     if (req.cookies.userId) {
         User.find({_id: req.cookies.userId}).then(data => {
@@ -41,11 +42,51 @@ router.put('/addtowatchlist/:ticker', (req, res, next) => {
     }
 })
 
+// DONE, CHECKED
+// buys the stock in a specific dollar amount
 router.post('/buy', (req, res, next) => {
     if (req.cookies.userId) {
         var dollarAmount = req.body.dollarAmount;
         var ticker = req.body.ticker;
-        
+
+        // create the market order (execute at current price)
+        alpaca.createOrder({
+            symbol: ticker,
+            notional: Number(dollarAmount),
+            side: 'buy',
+            type: 'market',
+            time_in_force: 'day'
+        }).then((result) => {
+            res.json({statusString: "OK"});
+        }).catch((err) => {
+            console.log(err.message);
+            res.json({statusString: "Failure"});
+        })
+    } else {
+        res.json({statusString: "Not logged in"})
+    }
+})
+
+// DONE, CHECKED
+// sells the stock in a specific dollar amount
+router.post('/sell', (req, res, next) => {
+    if (req.cookies.userId) {
+        var dollarAmount = req.body.dollarAmount;
+        var ticker = req.body.ticker;
+
+        // create the market order (execute at current price)
+        alpaca.createOrder({
+            symbol: ticker,
+            notional: Number(dollarAmount),
+            side: 'sell',
+            type: 'market',
+            time_in_force: 'day'
+        }).then((result) => {
+            res.json({statusString: "OK"});
+        }).catch((err) => {
+            console.log(err.message);
+            res.json({statusString: "Failure"});
+        })
     } else {
         res.json({statusString: "Not logged in"})
     }
