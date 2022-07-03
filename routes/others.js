@@ -2,6 +2,13 @@ var express = require("express");
 var router = express.Router();
 var monk = require('monk');
 const User = require('../models/user');
+const axios = require('axios');
+const Alpaca = require('@alpacahq/alpaca-trade-api');
+const alpaca = new Alpaca({
+    keyId: 'PKVSY8HW2NWNLFTCQS71',
+    secretKey: '6wxuANIzODXQBdU1zE27QOf6U7eETMeftWF6KBAa',
+    paper: true
+});
 
 // DONE, CHECKED
 // facilitates signing in
@@ -42,9 +49,12 @@ router.get('/signout', (req, res, next) => {
 
 // TEST ENDPOINT
 router.get('/test-endpoint', (req, res, next) => {
-    User.find({userName: "squid"}).then(data => {
-        console.log(data);
-    })
+    var tickerArr = ['VOO', 'AAPL'];
+    alpaca.getLatestTrades(tickerArr).then(data => {
+        for (var [key, objVal] of data.entries()) {
+            console.log(objVal);
+        }
+    });
 })
 
 module.exports = router;
