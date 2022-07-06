@@ -49,12 +49,28 @@ router.get('/signout', (req, res, next) => {
 
 // TEST ENDPOINT
 router.get('/test-endpoint', (req, res, next) => {
-    var tickerArr = ['VOO', 'AAPL'];
-    alpaca.getLatestTrades(tickerArr).then(data => {
-        for (var [key, objVal] of data.entries()) {
-            console.log(objVal);
+    // var tickerArr = ['VOO', 'AAPL'];
+    // alpaca.getLatestTrades(tickerArr).then(data => {
+    //     for (var [key, objVal] of data.entries()) {
+    //         console.log(objVal.Price);
+    //     }
+    // });
+
+    var differencesObjects = [
+        {ticker: 'VOO', diff: 89}, {ticker: 'PFE', diff: 25}, {ticker: 'TSLA', diff: 102}
+    ]
+
+    differencesObjects.sort((a, b) => {
+        if (a.diff > b.diff) {
+            return -1;
+        } else if (a.diff < b.diff) {
+            return 1;
         }
+        return 0;
     });
+
+    console.log(differencesObjects);
+    console.log(Math.min(90, 90));
 })
 
 module.exports = router;

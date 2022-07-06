@@ -47,6 +47,10 @@ router.put('/addtowatchlist/:ticker', (req, res, next) => {
 // updates the DB to reflect the new amount and average price
 var findAndUpdateBuy = async function(userId, tickerAdded, dollarAmount, res) {
     var data = await User.find({_id: userId});
+    if (data[0].cashAvailable < dollarAmount) {
+        res.json({statusString: "Not enough cash available"});
+    }
+
     var stockObjects = data[0].stocks;
     var stockArr = new Array();
     var inDB = false;
@@ -93,7 +97,9 @@ var findAndUpdateBuy = async function(userId, tickerAdded, dollarAmount, res) {
         stockArr.push({
             name: stockInfo.companyName, amount: amount, ticker: tickerAdded, avgPrice: stockInfo.price
         });
-        await User.findOneAndUpdate({_id: userId}, {stocks: stockArr});
+        await User.findOneAndUpdate({_id: userId}, {
+            cashAvailable: data[0].cashAvailable - dollarAmount, stocks: stockArr
+        });
     }
     res.json({statusString: "OK"});
 }
@@ -157,7 +163,9 @@ var findAndUpdateSell = async function(userId, tickerAdded, dollarAmount, res) {
             stockArr.push(stockObjects[i]);
         }
     }
-    await User.findOneAndUpdate({_id: userId}, {stocks: stockArr});
+    await User.findOneAndUpdate({_id: userId}, {
+        cashAvailable: Number(data[0].cashAvailable) + Number(dollarAmount), stocks: stockArr
+    });
     res.json({statusString: "OK"});
 }
 
