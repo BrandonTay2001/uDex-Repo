@@ -1,7 +1,6 @@
 var express = require("express");
 var router = express.Router();
 var monk = require('monk');
-// var request = require('request');
 const Alpaca = require('@alpacahq/alpaca-trade-api');
 const alpaca = new Alpaca({
     keyId: 'PKVSY8HW2NWNLFTCQS71',
@@ -9,6 +8,7 @@ const alpaca = new Alpaca({
     paper: true
 });
 const User = require('../models/user');
+const axios = require('axios');
 
 // async function used in the /getstocks API
 // loops through stocks to get the current price, computes the current allocation and sends 
@@ -22,9 +22,11 @@ const sendStocks = async function(stocks, stockList, totalAlloc, res) {
             name: stocks[i].name, ticker: stocks[i].ticker, amount: stocks[i].amount, 
             avgPrice: stocks[i].avgPrice, currAlloc: currAlloc
         };
+
         totalAlloc += currAlloc;
         stockList.push(stockObj);
     }
+
     res.json({statusString: "OK", totalStockValue: totalAlloc, stocks: stockList});
 }
 
@@ -37,9 +39,10 @@ const sendIndexes = async function (indexes, returnedIndexList, res) {
         var stockList = new Array();
         var totalAlloc = 0;
         for (var j = 0; j < stocks.length; j++) {
-            if (stocks[j].amount === 0) {
+            if (stocks[j].amount === 0) {   // ignores non-invested indices
                 continue;
             }
+
             var stockData = await alpaca.getLatestTrade(stocks[j].ticker);
             var latestPrice = stockData.Price;
             var currAlloc = stocks[j].amount * latestPrice;
@@ -47,6 +50,7 @@ const sendIndexes = async function (indexes, returnedIndexList, res) {
                 name: stocks[j].name, ticker: stocks[j].ticker, amount: stocks[j].amount, 
                 avgPrice: stocks[j].avgPrice, currAlloc: currAlloc
             };
+
             totalAlloc += currAlloc;
             stockList.push(stockObj);
         }
@@ -68,11 +72,8 @@ const sendIndexes = async function (indexes, returnedIndexList, res) {
 // DONE, CHECKED
 // sends information of all of the investor's stocks
 router.get('/getstocks', (req, res, next) => {
-    // var db = req.db;
-    // var col = db.get("users");
 
     if (req.cookies.userId) {   // cookies set
-        // console.log(req.cookies.userId);
         User.find({_id: req.cookies.userId}).then((data) => {   // ok
             var totalAlloc = 0;
             var stockList = new Array();
@@ -93,8 +94,6 @@ router.get('/getstocks', (req, res, next) => {
 // DONE, CHECKED
 // sends information on a user's invested indexes (where amount is > 0)
 router.get('/getindexes', (req, res, next) => {
-    // var db = req.db;
-    // var col = db.get("users");
 
     if (req.cookies.userId) {
         User.find({_id: req.cookies.userId}).then((data) => {
@@ -114,8 +113,6 @@ router.get('/getindexes', (req, res, next) => {
 // DONE, NOT CHECKED
 // gets the user's cash balance
 router.get('/getcashbalance', (req, res, next) => {
-    // var db = req.db;
-    // var col = db.get("users");
 
     if (req.cookies.userId) {
         User.find({_id: req.cookies.userId}).then((data) => {

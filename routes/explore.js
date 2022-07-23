@@ -14,6 +14,7 @@ const axios = require('axios');
 // obtains the current price of and daily percentage change of each stock in the watchlist, returns correct data
 var sendWatchlist = async function(watchlist, returnArr, res) {
     for (var i = 0; i < watchlist.length; i++) {
+
         // get the current price and calculate daily % change
         var stockData = await alpaca.getLatestTrade(watchlist[i]);
         var latestPrice = stockData.Price;
@@ -52,8 +53,6 @@ var sendSearchedStock = async function(ticker, res) {
 // DONE, CHECKED
 // gets the current user's watchlist
 router.get('/getwatchlist', (req, res, next) => {
-    // var db = req.db;
-    // var col = db.get("users");
 
     if (req.cookies.userId) {
         User.find({_id: req.cookies.userId}).then((data) => {

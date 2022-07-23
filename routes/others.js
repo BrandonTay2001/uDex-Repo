@@ -15,11 +15,8 @@ const alpaca = new Alpaca({
 router.post('/signin', (req, res, next) => {
     
     // standard stuff
-    // var db = req.db;
     var username = req.body.username;
     var password = req.body.password;
-    console.log(username);
-    // var col = db.get("users");
 
     // find in database according to username and password
     User.find({userName: username, password: password}).then((data) => {
@@ -49,12 +46,6 @@ router.get('/signout', (req, res, next) => {
 
 // TEST ENDPOINT
 router.get('/test-endpoint', (req, res, next) => {
-    // var tickerArr = ['VOO', 'AAPL'];
-    // alpaca.getLatestTrades(tickerArr).then(data => {
-    //     for (var [key, objVal] of data.entries()) {
-    //         console.log(objVal.Price);
-    //     }
-    // });
 
     var differencesObjects = [
         {ticker: 'VOO', diff: 89}, {ticker: 'PFE', diff: 25}, {ticker: 'TSLA', diff: 102}

@@ -9,6 +9,7 @@ const bodyParser = require("body-parser");
 // using mongoose instead of monk as monk has trouble interacting with cloud databases and can't do db credential caching
 const mongoose = require('mongoose');
 
+// endpoint routing
 var exploreRouter = require('./routes/explore');
 var stocksRouter = require('./routes/stocks');
 var indexesRouter = require('./routes/indexes');
@@ -17,6 +18,7 @@ var othersRouter = require('./routes/others');
 
 var app = express();
 
+// connect to cloud db
 var url = 'mongodb+srv://general-user:thisisaprototype@testcluster.rc6pk.mongodb.net/startupDB?retryWrites=true&w=majority';
 mongoose.connect(url, {useNewUrlParser: true, useUnifiedTopology: true}).then((res) => {
   var server = app.listen(3001, function () {
@@ -65,7 +67,7 @@ app.use(function(err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
+  // render the error page 
   res.status(err.status || 500);
   res.render('error');
 });

@@ -56,6 +56,8 @@ var findAndUpdateBuy = async function(userId, tickerAdded, dollarAmount, res) {
     var inDB = false;
     for (var i = 0; i < stockObjects.length; i++) {
         if (stockObjects[i].ticker === tickerAdded) {
+
+            // get stock info for updating price and amount
             try {
                 var stockInfoGeneral = await axios.get(
                     'https://financialmodelingprep.com/api/v3/profile/' 
@@ -71,6 +73,7 @@ var findAndUpdateBuy = async function(userId, tickerAdded, dollarAmount, res) {
             // computes the new average price
             var newAvgPrice = ((stockObjects[i].avgPrice * stockObjects[i].amount) + (amount * priceNow)) 
                 / (stockObjects[i].amount + amount);
+            
             stockArr.push({
                 name: stockInfo.companyName, amount: amount + stockObjects[i].amount, 
                 ticker: tickerAdded, avgPrice: newAvgPrice
@@ -81,7 +84,9 @@ var findAndUpdateBuy = async function(userId, tickerAdded, dollarAmount, res) {
         }
     }
     if (inDB) {
-        await User.findOneAndUpdate({_id: userId}, {stocks: stockArr});
+        await User.findOneAndUpdate({_id: userId}, {
+            cashAvailable: data[0].cashAvailable - dollarAmount, stocks: stockArr
+        });
     }
     else {  // stock not in user's asset list
         try {
@@ -131,10 +136,12 @@ router.post('/buy', (req, res, next) => {
 
 // async function used in /sell API
 // updates the database based on the sale
+// tickerAdded here represents the ticker sold
 var findAndUpdateSell = async function(userId, tickerAdded, dollarAmount, res) {
     var data = await User.find({_id: userId});
     var stockObjects = data[0].stocks;
     var stockArr = new Array();
+
     for (var i = 0; i < stockObjects.length; i++) {
         if (stockObjects[i].ticker === tickerAdded) {
             try {
@@ -145,9 +152,11 @@ var findAndUpdateSell = async function(userId, tickerAdded, dollarAmount, res) {
             } catch {
                 res.json({statusString: "3rd party API failure"});
             }
+
             var stockInfo = stockInfoGeneral.data[0];
             var priceNow = stockInfo.price;
             var amount = dollarAmount / priceNow;
+
             if (amount === stockObjects[i].amount) {    // if everything is sold
                 continue;
             }
@@ -163,6 +172,8 @@ var findAndUpdateSell = async function(userId, tickerAdded, dollarAmount, res) {
             stockArr.push(stockObjects[i]);
         }
     }
+
+    // update db
     await User.findOneAndUpdate({_id: userId}, {
         cashAvailable: Number(data[0].cashAvailable) + Number(dollarAmount), stocks: stockArr
     });
@@ -252,7 +263,7 @@ var getStockGeneralInfo = async function(ticker, res) {
 }
 
 // async function used in /:ticker API
-// executes all the other async functions and returns an organized result to the client
+// executes all the other informational async functions and returns an organized result to the client
 var executeFunctions = async function(ticker, res) {
     var historicalPriceArr = await getHistoricalPrices(ticker, res);
     var financialInfo = await getFinancialInfo(ticker, res);
